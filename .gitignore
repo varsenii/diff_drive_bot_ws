@@ -6,6 +6,7 @@ build/
 devel/
 install/
 logs/
+log/
 .vscode/
 *.log
 
