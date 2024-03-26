@@ -4,6 +4,7 @@ FROM ros:humble
 # Install the dependencies
 RUN apt-get update \
     && apt-get install -y ros-humble-xacro \
+        python3-serial \
     && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory
