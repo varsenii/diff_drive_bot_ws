@@ -30,6 +30,6 @@ COPY entrypoint.sh /entrypoint.sh
 # Copy the bashrc file to enable autocopletion
 COPY bashrc /home/${USERNAME}/.bashrc
 
-# Setupd entrypoiint and default command
+# Setup entrypoint and default command
 ENTRYPOINT [ "/bin/bash", "/entrypoint.sh" ]
 CMD [ "bash" ]
