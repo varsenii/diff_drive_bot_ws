@@ -19,6 +19,9 @@ RUN groupadd --gid $USER_GID $USERNAME \
   && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID -m $USERNAME \
   && mkdir /home/$USERNAME/.config && chown $USER_UID:$USER_GID /home/$USERNAME/.config
 
+# Add the user to the dialout group to enable serial port access
+RUN usermod -aG dialout ${USERNAME}
+
 # Copy the entire ROS workspace into the container
 COPY src/ src/
 
