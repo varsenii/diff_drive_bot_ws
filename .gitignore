@@ -3,10 +3,7 @@
 *.pyd
 __pycache__/
 build/
-devel/
 install/
-logs/
 log/
 .vscode/
 *.log
-

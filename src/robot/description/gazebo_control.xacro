@@ -21,8 +21,7 @@
             <publish_odom>true</publish_odom>  <!-- Publish odometry messages -->
             <publish_odom_tf>true</publish_odom_tf>  <!-- Publish odometry transformation messages -->
             <publish_wheel_tf>true</publish_wheel_tf>  <!-- Publish wheel transformation messages -->
-
-
+            
         </plugin>
     </gazebo>
 
