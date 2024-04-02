@@ -12,11 +12,6 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-
-
-    # Include the robot_state_publisher launch file, provided by our own package. Force sim time to be enabled
-    # !!! MAKE SURE YOU SET THE PACKAGE NAME CORRECTLY !!!
-
     package_name = 'diff_drive_bot'
     robot_name = 'robot'
 
@@ -32,17 +27,30 @@ def generate_launch_description():
                     get_package_share_directory('gazebo_ros'), 'launch', 'gazebo.launch.py')]),
              )
 
-    # Run the spawner node from the gazebo_ros package. The entity name doesn't really matter if you only have a single robot.
+    # Run the spawner node from the gazebo_ros package
     spawn_entity = Node(package='gazebo_ros', executable='spawn_entity.py',
                         arguments=['-topic', 'robot_description',
                                    '-entity', robot_name],
                         output='screen')
+    
+    # Run the spawner node to start the diff_cont controller
+    diff_drive_spawner = Node(
+        package='controller_manager', 
+        executable='spawner',
+        arguments=['diff_cont']
+    )
 
+    # Run the spawner node to start the joint_broad controller
+    joint_broad_spawner = Node(
+        package='controller_manager', 
+        executable='spawner',
+        arguments=['joint_broad']
+    )
 
-
-    # Launch them all!
     return LaunchDescription([
         rsp,
         gazebo,
         spawn_entity,
+        diff_drive_spawner,
+        joint_broad_spawner
     ])

@@ -4,8 +4,10 @@ FROM ros:humble
 # Install the dependencies
 RUN apt-get update \
     && apt-get install -y ros-humble-xacro \
-        ros-humble-image-transport-plugins \
         python3-serial \
+        ros-humble-image-transport-plugins \
+        ros-humble-ros2-control \
+        ros-humble-ros2-controllers \
     && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory
