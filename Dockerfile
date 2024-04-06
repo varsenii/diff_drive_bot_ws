@@ -8,6 +8,7 @@ RUN apt-get update \
         ros-humble-image-transport-plugins \
         ros-humble-ros2-control \
         ros-humble-ros2-controllers \
+        ros-humble-rosbridge_suite \
     && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory
