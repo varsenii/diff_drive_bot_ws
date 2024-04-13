@@ -5,10 +5,11 @@ FROM ros:humble
 RUN apt-get update \
     && apt-get install -y ros-humble-xacro \
         python3-serial \
+        libserial-dev \
         ros-humble-image-transport-plugins \
         ros-humble-ros2-control \
         ros-humble-ros2-controllers \
-        ros-humble-rosbridge_suite \
+        ros-humble-rosbridge-suite \
     && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory

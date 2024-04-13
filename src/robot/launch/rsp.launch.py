@@ -12,7 +12,7 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
 
-    # Check if we're told to use sim time
+    # Check if whether to use sim time
     use_sim_time = LaunchConfiguration('use_sim_time')
     # Check whether to use ros2_control, gazebo_control otherwise
     use_ros2_control = LaunchConfiguration('use_ros2_control')
