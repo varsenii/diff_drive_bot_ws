@@ -49,6 +49,8 @@ def generate_launch_description():
         condition=IfCondition(use_ros2_control)
     )
 
+    delayed_diff_drive_spawner = TimerAction(period=3.0, actions=[diff_drive_spawner])
+
     # Run the spawner node to start the joint_broad controller
     joint_broad_spawner = Node(
         package='controller_manager', 
@@ -56,6 +58,8 @@ def generate_launch_description():
         arguments=['joint_broad'],
         condition=IfCondition(use_ros2_control)
     )
+
+    delayed_joint_broad_spawner = TimerAction(period=3.0, actions=[joint_broad_spawner])
 
     return LaunchDescription([
         DeclareLaunchArgument(
@@ -65,6 +69,6 @@ def generate_launch_description():
         rsp,
         gazebo,
         spawn_entity,
-        diff_drive_spawner,
-        joint_broad_spawner
+        delayed_diff_drive_spawner,
+        delayed_joint_broad_spawner
     ])
