@@ -7,8 +7,8 @@
             <!-- Wheel information -->
             <left_joint>left_wheel_joint</left_joint>  <!-- Name of the left wheel joint -->
             <right_joint>right_wheel_joint</right_joint>  <!-- Name of the right wheel joint -->
-            <wheel_separation>0.35</wheel_separation>  <!-- Distance between the left and right wheels -->
-            <wheel_diameter>0.1</wheel_diameter>  <!-- Diameter of the wheels -->
+            <wheel_separation>0.262</wheel_separation>  <!-- Distance between the left and right wheels -->
+            <wheel_diameter>0.65</wheel_diameter>  <!-- Diameter of the wheels -->
 
             <!-- Limits -->
             <max_wheel_torque>200</max_wheel_torque>  <!-- Maximum torque that can be applied to the wheels -->

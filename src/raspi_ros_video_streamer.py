@@ -79,7 +79,7 @@ if __name__ == "__main__":
     picam2.configure(video_config)
     picam2.start()
 
-    # websocket.enableTrace(True)  # Removed or commented out
+    # websocket.enableTrace(True)
     ws = websocket.WebSocketApp(f"ws://{args.ip}:{args.port}")
     ws.on_message = on_message
     ws.on_error = on_error
