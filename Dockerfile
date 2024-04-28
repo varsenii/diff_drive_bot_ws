@@ -10,6 +10,7 @@ RUN apt-get update \
         ros-humble-ros2-control \
         ros-humble-ros2-controllers \
         ros-humble-rosbridge-suite \
+        ros-humble-slam-toolbox \
     && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory
@@ -32,6 +33,9 @@ COPY src/ src/
 
 # Build the workspace
 RUN . /opt/ros/humble/setup.sh && colcon build --symlink-install
+
+# Copy the param file for online asynchronous SLAM
+RUN cp /opt/ros/humble/share/slam_toolbox/config/mapper_params_online_async.yaml src/robot/config/
 
 # Copy the entrypoint script file
 COPY entrypoint.sh /entrypoint.sh
