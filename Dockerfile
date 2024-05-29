@@ -11,6 +11,8 @@ RUN apt-get update \
         ros-humble-ros2-controllers \
         ros-humble-rosbridge-suite \
         ros-humble-slam-toolbox \
+        ros-humble-navigation2 \
+        ros-humble-nav2-bringup \
     && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory
