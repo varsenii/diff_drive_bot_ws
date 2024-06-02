@@ -13,6 +13,7 @@ RUN apt-get update \
         ros-humble-slam-toolbox \
         ros-humble-navigation2 \
         ros-humble-nav2-bringup \
+        ros-humble-twist-mux \
     && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory
