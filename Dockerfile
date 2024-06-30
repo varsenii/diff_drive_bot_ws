@@ -4,6 +4,7 @@ FROM ros:humble
 # Install the dependencies
 RUN apt-get update \
     && apt-get install -y ros-humble-xacro \
+        python3-pip \
         python3-serial \
         libserial-dev \
         ros-humble-image-transport-plugins \
@@ -33,6 +34,12 @@ RUN usermod -aG dialout ${USERNAME}
 
 # Copy the entire ROS workspace into the container
 COPY src/ src/
+
+# Install Python dependencies for YOLOv8
+RUN pip3 install -r src/yolov8_ros/requirements.txt
+
+# Ensure necessary directories have the correct permissions
+RUN chown -R $USER_UID:$USER_GID /diff_drive_bot /home/$USERNAME
 
 # Build the workspace
 RUN . /opt/ros/humble/setup.sh && colcon build --symlink-install
