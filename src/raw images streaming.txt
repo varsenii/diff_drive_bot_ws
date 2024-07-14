@@ -1,14 +1,16 @@
+# This code works with jpeg image streaming
+
 import json
 import websocket
 import threading
 import time
 from picamera2 import Picamera2
+import cv2
+import base64
 import argparse
 import logging
 import signal
 import sys
-import numpy as np
-import cv2
 
 
 picam2 = Picamera2()
@@ -31,28 +33,23 @@ def on_open(ws):
         while True:
             try:
                 frame = picam2.capture_array()
-                frame = cv2.flip(frame, 0)
-                # Convert frame to a flat list of integers
-                frame_data = frame.flatten().tolist()
-                ros_raw_msg = {
+                _, buffer = cv2.imencode('.jpg', frame)
+                data = base64.b64encode(buffer).decode('utf-8')
+                ros_compressed_msg = {
                     "header": {
                         "stamp": {"secs": int(time.time()), "nsecs": 0},
                         "frame_id": "camera",
                     },
-                    "height": frame.shape[0],
-                    "width": frame.shape[1],
-                    "encoding": "bgr8",  # Update this if using a different format
-                    "is_bigendian": 0,
-                    "step": frame.shape[1] * 3,  # 3 bytes per pixel for RGB
-                    "data": frame_data,
+                    "format": "jpeg",
+                    "data": data,
                 }
                 message = {
                     "op": "publish",
-                    "topic": "/camera/image_raw",
-                    "msg": ros_raw_msg,
+                    "topic": "/camera/image_raw/compressed",
+                    "msg": ros_compressed_msg,
                 }
                 ws.send(json.dumps(message))
-                time.sleep(0.1)  # Adjust the sleep time as needed
+                time.sleep(0.01)
             except Exception as e:
                 logger.error(f"Error sending frame: {e}")
                 break
