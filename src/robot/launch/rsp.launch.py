@@ -7,17 +7,15 @@ from launch.substitutions import LaunchConfiguration, Command
 from launch.actions import DeclareLaunchArgument
 from launch_ros.actions import Node
 
-
-motor_controller_device_id = 'usb-FTDI_FT232R_USB_UART_AQ029HJR-if00-port0';
+motor_controller_device = 'usb-FTDI_FT232R_USB_UART_AQ029HJR-if00-port0';
 
 
 def generate_launch_description():
-    motor_controller_path = find_motor_controller_path(motor_controller_device_id)
-
-    # Check whether to use sim time
     use_sim_time = LaunchConfiguration('use_sim_time')
     # Check whether to use ros2_control, gazebo_control otherwise
     use_ros2_control = LaunchConfiguration('use_ros2_control')
+
+    motor_controller_path = find_motor_controller_path(motor_controller_device)
 
     # Process the URDF file
     pkg_path = os.path.join(get_package_share_directory('diff_drive_bot'))
@@ -37,27 +35,27 @@ def generate_launch_description():
         parameters=[params]
     )
 
-
-    # Launch!
     return LaunchDescription([
         DeclareLaunchArgument(
             'use_sim_time',
             default_value='false',
-            description='Use sim time if true'),
+            description='Use sim time if true'
+        ),
         DeclareLaunchArgument(
             'use_ros2_control',
             default_value='true',
-            description='Use ros2_control if true'),
+            description='Use ros2_control if true'
+        ),
 
         node_robot_state_publisher
     ])
 
 
-def find_motor_controller_path(microntroller_id):
-    symbolic_link_path = f'/dev/serial/by-id/{microntroller_id}'
+def find_motor_controller_path(motor_controller_device):
+    symbolic_link_path = f'/dev/serial/by-id/{motor_controller_device}'
 
     if not os.path.exists(symbolic_link_path):
-        raise RuntimeError(f'"{symbolic_link_path}" doesn\'t exist')
+        return ''
 
     try:
         actual_file_path = os.path.realpath(symbolic_link_path)
@@ -66,8 +64,5 @@ def find_motor_controller_path(microntroller_id):
 
     if not os.path.exists(actual_file_path):
         raise RuntimeError(f'The resolved path "{actual_file_path}" does not exist')
-    
-    print(f'Found motor controller path: {actual_file_path}')
-
 
     return actual_file_path

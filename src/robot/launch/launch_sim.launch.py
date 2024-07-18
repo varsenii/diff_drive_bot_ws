@@ -65,7 +65,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             'use_ros2_control',
             default_value='true',
-            description='Use ros2_control if true'),
+            description='Specifyies whether to use ros2_control'),
         rsp,
         gazebo,
         spawn_entity,
