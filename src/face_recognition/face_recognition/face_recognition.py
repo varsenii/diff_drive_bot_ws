@@ -10,7 +10,7 @@ import os
 from deepface import DeepFace
 
 
-class FaceIdentificator(Node):
+class FaceRecognitionNode(Node):
 
     def __init__(self):
         super().__init__('face_recognition')
@@ -108,7 +108,7 @@ class FaceIdentificator(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    face_recognition = FaceIdentificator()
+    face_recognition = FaceRecognitionNode()
     rclpy.spin(face_recognition)
     
     face_recognition.destroy_node()

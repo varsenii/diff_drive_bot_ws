@@ -35,8 +35,9 @@ RUN usermod -aG dialout ${USERNAME}
 # Copy the entire ROS workspace into the container
 COPY src/ src/
 
-# Install Python dependencies for YOLOv8
-RUN pip3 install -r src/yolov8_ros/requirements.txt
+# Install Python dependencies for YOLOv8 and deepface using pip
+RUN pip3 install -r src/yolov8_ros/requirements.txt \
+  && pip3 install deepface tf-keras
 
 # Ensure necessary directories have the correct permissions
 RUN chown -R $USER_UID:$USER_GID /diff_drive_bot /home/$USERNAME
