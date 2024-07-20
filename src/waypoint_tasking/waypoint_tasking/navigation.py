@@ -1,5 +1,4 @@
 from rclpy.action import ActionClient
-from visualization_msgs.msg import Marker
 from nav2_msgs.action import NavigateToPose
 from rclpy.callback_groups import ReentrantCallbackGroup
 
@@ -13,9 +12,7 @@ class NavigationManager:
         self.current_goal_handle = None  # To track the current goal handle
         self.logger = self.node.get_logger()
 
-    def move_to_waypoint(self, marker):
-        goal_msg = self.marker_to_goal(marker)
-        
+    def move_to_waypoint(self, goal_msg):
         if self.current_goal_handle:
             self.logger.info('Cancelling current goal...')
             self.current_goal_handle.cancel_goal_async()
@@ -54,14 +51,6 @@ class NavigationManager:
                 self.logger.error('Failed to receive result from action server.')
         except Exception as e:
             self.logger.error(f'Exception occurred while retrieving result: {e}')
-
-    def marker_to_goal(self, marker: Marker) -> NavigateToPose.Goal:
-        goal_msg = NavigateToPose.Goal()
-        goal_msg.pose.header.stamp = marker.header.stamp
-        goal_msg.pose.header.frame_id = marker.header.frame_id
-        goal_msg.pose.pose.position = marker.pose.position
-        goal_msg.pose.pose.orientation = marker.pose.orientation
-        return goal_msg
 
     def set_parent_tasker(self, tasker):
         self.parent_tasker = tasker

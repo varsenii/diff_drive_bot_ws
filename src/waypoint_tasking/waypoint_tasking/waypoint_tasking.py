@@ -1,11 +1,13 @@
 import rclpy
 from rclpy.node import Node
 from rclpy.executors import MultiThreadedExecutor
+import rclpy.time
 
 from diff_drive_bot_interfaces.srv import StartWaypointTask
 from waypoint_tasking.tasks.face_recognition import FaceRecognitionManager
 from waypoint_tasking.waypoint_manager import WaypointManager
 from waypoint_tasking.navigation import NavigationManager
+from waypoint_tasking.utils import marker_to_goal
 
 
 
@@ -26,11 +28,13 @@ class WaypointTasker(Node):
         self.logger = self.get_logger()
         self.current_waypoint_index = 0
 
+
     def start_waypoint_task_callback(self, request, response):
         self.current_waypoint_index = 0
         waypoints = self.waypoint_manager.get_waypoints()
         if waypoints:
-            self.move_to_waypoint(waypoints[self.current_waypoint_index])
+            goal_msg = marker_to_goal(waypoints[self.current_waypoint_index])
+            self.move_to_waypoint(goal_msg)
         else:
             self.logger.error('No waypoints available to navigate.')
 
@@ -50,6 +54,9 @@ class WaypointTasker(Node):
             self.move_to_waypoint(waypoints[self.current_waypoint_index])
         else:
             self.logger.info('All waypoints have been visited.')
+        
+        self.navigation_manager.move_to_waypoint(self.waypoint_manager.starting_pose_goal)
+    
 
 def main():
     rclpy.init()
