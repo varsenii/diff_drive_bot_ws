@@ -23,7 +23,7 @@ class FaceRecognitionManager:
             self.logger.error(f'Exception occurred during face recognition: {e}')
 
         # Notify the parent tasker to move to the next waypoint
-        self.parent_tasker.on_task_complete(task='face_recognition')
+        self.parent_tasker.on_task_complete(task='face_recognition', result=result)
 
     def set_parent_tasker(self, tasker):
         self.parent_tasker = tasker

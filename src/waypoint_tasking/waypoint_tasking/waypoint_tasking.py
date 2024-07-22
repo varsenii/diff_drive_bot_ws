@@ -8,8 +8,7 @@ from diff_drive_bot_interfaces.srv import StartWaypointTask
 from waypoint_tasking.tasks.face_recognition import FaceRecognitionManager
 from waypoint_tasking.waypoint_manager import WaypointManager
 from waypoint_tasking.navigation import NavigationManager
-from waypoint_tasking.utils import marker_to_goal
-
+from waypoint_tasking.utils import marker_to_goal, ReportManager
 
 
 class WaypointTasker(Node):
@@ -42,10 +41,14 @@ class WaypointTasker(Node):
         self.executed_tasks_per_waypoint = 0
         self.tasks = []
 
+        self.report_manager = ReportManager()
+
 
     def start_waypoint_task_callback(self, request, response):
         self.tasks = request.tasks
         self.logger.info(f'Received tasks: {self.tasks}')
+
+        self.report_manager.create_report()
 
         self.current_waypoint_index = 0
         self.executed_tasks_per_waypoint = 0
@@ -74,12 +77,15 @@ class WaypointTasker(Node):
             self.logger.info(f'Performing "{task}" task...')
             self.supported_tasks[task].perform_task()
 
-    def on_task_complete(self, task):
+    def on_task_complete(self, task, result):
         self.executed_tasks_per_waypoint += 1
 
         self.logger.info(f'"{task}" task completed')
         self.logger.info(f'Executed tasks: {self.executed_tasks_per_waypoint}/{len(self.tasks)}')
 
+        self.report_manager.log_task_result(waypoint_index=self.current_waypoint_index, task=task, result=result)
+
+        # Proceed to the next waypoint only if all tasks have been executed
         if self.executed_tasks_per_waypoint < len(self.tasks):
             return
         
