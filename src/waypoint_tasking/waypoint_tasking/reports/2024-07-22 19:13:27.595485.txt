@@ -1,0 +1,4 @@
+Waypoint Tasks Report
+=====================
+
+Waypoint 1: "face_recognition" task result: diff_drive_bot_interfaces.srv.FaceIdentification_Response(success=False, name='')

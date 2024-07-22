@@ -13,7 +13,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/FaceIdentification.msg"
   "srv/FaceIdentification.srv"
   "srv/RememberFace.srv"
-  "srv/StartWaypointTask.srv"
+  "srv/StartWaypointTasks.srv"
   # DEPENDENCIES geometry_msgs
 )
 

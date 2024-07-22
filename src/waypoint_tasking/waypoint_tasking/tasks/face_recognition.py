@@ -9,7 +9,6 @@ class FaceRecognitionManager:
         self.logger = self.node.get_logger()
 
     def perform_task(self):
-        self.logger.info('Performing face recognition...')
         request = FaceIdentification.Request()
         
         future = self.face_recognition_client.call_async(request)

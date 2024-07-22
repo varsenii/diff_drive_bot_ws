@@ -1,0 +1,5 @@
+string[] tasks
+int32[] waypoints
+bool return_to_start
+---
+bool success

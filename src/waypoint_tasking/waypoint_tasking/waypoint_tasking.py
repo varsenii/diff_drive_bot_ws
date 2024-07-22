@@ -4,7 +4,7 @@ from rclpy.executors import MultiThreadedExecutor
 import rclpy.time
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 
-from diff_drive_bot_interfaces.srv import StartWaypointTask
+from diff_drive_bot_interfaces.srv import StartWaypointTasks
 from waypoint_tasking.tasks.face_recognition import FaceRecognitionManager
 from waypoint_tasking.waypoint_manager import WaypointManager
 from waypoint_tasking.navigation import NavigationManager
@@ -22,7 +22,7 @@ class WaypointTasker(Node):
             depth=10,
         )
 
-        self.start_navigation_service = self.create_service(StartWaypointTask, 'start_waypoint_task', self.start_waypoint_task_callback, qos_profile=qos_profile)
+        self.start_navigation_service = self.create_service(StartWaypointTasks, 'start_waypoint_tasks', self.start_waypoint_tasks_callback, qos_profile=qos_profile)
         
         self.waypoint_manager = WaypointManager(self)
         self.navigation_manager = NavigationManager(self)
@@ -44,28 +44,34 @@ class WaypointTasker(Node):
         self.report_manager = ReportManager()
 
 
-    def start_waypoint_task_callback(self, request, response):
+    def start_waypoint_tasks_callback(self, request, response):
         self.tasks = request.tasks
+        self.waypoints_to_visit = request.waypoints
+        self.return_to_start = request.return_to_start
         self.logger.info(f'Received tasks: {self.tasks}')
+        self.logger.info(f'Waypoints to navigate: {"all" if len(self.waypoints_to_visit) == 0 else self.waypoints_to_visit}')
+        self.logger.info(f'Return to start: {self.return_to_start}')
 
         self.report_manager.create_report()
 
         self.current_waypoint_index = 0
         self.executed_tasks_per_waypoint = 0
 
-        waypoints = self.waypoint_manager.get_waypoints()
+        self.waypoints_to_visit = self.waypoint_manager.get_waypoints(self.waypoints_to_visit)
 
-        if waypoints:
-            goal_msg = marker_to_goal(waypoints[self.current_waypoint_index])
-            self.move_to_waypoint(goal_msg)
+        if self.waypoints_to_visit:
+            self.move_to_waypoint(self.waypoints_to_visit[self.current_waypoint_index])
         else:
             self.logger.error('No waypoints available to navigate.')
 
         response.success = True
         return response
+    
 
-    def move_to_waypoint(self, marker):
-        self.navigation_manager.move_to_waypoint(marker)
+    def move_to_waypoint(self, waypoint):
+        self.logger.info(f'Moving to the waypoint {self.current_waypoint_index}...')
+        goal_msg = marker_to_goal(waypoint)
+        self.navigation_manager.move_to_waypoint(goal_msg)
 
     def perform_tasks_or_terminate(self):
         if self.is_coming_back_to_starting_point is True:
@@ -81,7 +87,7 @@ class WaypointTasker(Node):
         self.executed_tasks_per_waypoint += 1
 
         self.logger.info(f'"{task}" task completed')
-        self.logger.info(f'Executed tasks: {self.executed_tasks_per_waypoint}/{len(self.tasks)}')
+        self.logger.info(f'Executed tasks: {self.executed_tasks_per_waypoint}/{len(self.tasks)} at waypoint {self.current_waypoint_index}')
 
         self.report_manager.log_task_result(waypoint_index=self.current_waypoint_index, task=task, result=result)
 
@@ -89,16 +95,19 @@ class WaypointTasker(Node):
         if self.executed_tasks_per_waypoint < len(self.tasks):
             return
         
-        self.logger.info('All tasks are completed')
+        self.logger.info(f'All tasks are completed at waypoint {self.current_waypoint_index}')
 
         self.current_waypoint_index += 1
-        waypoints = self.waypoint_manager.get_waypoints()
+        self.executed_tasks_per_waypoint = 0
 
-        if self.current_waypoint_index < len(waypoints):
-            goal_msg = marker_to_goal(waypoints[self.current_waypoint_index])
-            self.move_to_waypoint(goal_msg)
+        if self.current_waypoint_index < len(self.waypoints_to_visit):
+            self.move_to_waypoint(self.waypoints_to_visit[self.current_waypoint_index])
         else:
             self.logger.info('All waypoints have been visited.')
+
+            if self.return_to_start is False:
+                return
+
             self.is_coming_back_to_starting_point = True
             self.logger.info('Coming back to the starting point...')
             self.navigation_manager.move_to_waypoint(self.waypoint_manager.starting_pose_goal)

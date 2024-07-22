@@ -36,8 +36,10 @@ class WaypointManager:
 
         self.update_starting_pose()
 
-    def get_waypoints(self):
-        return self.waypoints
+    def get_waypoints(self, indexes):
+        if len(indexes) == 0:
+            return self.waypoints
+        return [self.waypoints[i] for i in indexes]
     
     def update_starting_pose(self):
         try:

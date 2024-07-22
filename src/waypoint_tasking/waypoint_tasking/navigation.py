@@ -13,7 +13,7 @@ class NavigationManager:
 
     def move_to_waypoint(self, goal_msg):
         if self.current_goal_handle:
-            self.logger.info('Cancelling current goal...')
+            self.logger.debug('Cancelling current goal...')
             cancel_future = self.current_goal_handle.cancel_goal_async()
             cancel_future.add_done_callback(lambda future: self.send_goal(goal_msg))
         else:
@@ -21,7 +21,7 @@ class NavigationManager:
     
     def send_goal(self, goal_msg):
         if self.nav2_client.wait_for_server(timeout_sec=10.0):
-            self.logger.info('Sending goal...')
+            self.logger.debug('Sending goal...')
             future = self.nav2_client.send_goal_async(goal_msg)
             future.add_done_callback(self.goal_response_callback)
         else:
@@ -34,7 +34,7 @@ class NavigationManager:
                 self.logger.error('Goal was rejected by the action server.')
                 return
 
-            self.logger.info('Goal accepted by action server. Waiting for result...')
+            self.logger.debug('Goal accepted by action server. Waiting for result...')
             result_future = self.current_goal_handle.get_result_async()
             result_future.add_done_callback(self.result_callback)
 
