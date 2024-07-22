@@ -1,20 +1,30 @@
 import rclpy
 from rclpy.node import Node
 from cv_bridge import CvBridge
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image, CompressedImage
+from rclpy.logging import LoggingSeverity
 
 from diff_drive_bot_interfaces.srv import FaceIdentification, RememberFace
 
 import pickle
 import os
 from deepface import DeepFace
+import numpy as np
+import cv2
 
 
 class FaceRecognitionNode(Node):
 
     def __init__(self):
         super().__init__('face_recognition')
-        self.subscription = self.create_subscription(Image, '/camera/image_raw', self.image_callback, 10)
+
+        self.declare_parameter('img_compressed', True)
+        self.img_compressed = self.get_parameter('img_compressed').get_parameter_value().bool_value
+
+        self.subscription = self.create_subscription(
+                                                     CompressedImage if self.img_compressed else Image, 
+                                                     '/camera/image_raw/compressed' if self.img_compressed else '/camera/image_raw',
+                                                     self.image_callback, 10)
         self.srv = self.create_service(FaceIdentification, 'identify_person_by_face', self.identify_person_by_face_callback)
         self.remember_srv = self.create_service(RememberFace, 'remember_face', self.remember_face_callback)
         
@@ -34,6 +44,8 @@ class FaceRecognitionNode(Node):
             self.known_faces = self.load_embeddings()
         else:
             self.save_embeddings(self.known_faces)
+        
+        self.logger = self.get_logger()
 
     
     def identify_person_by_face_callback(self, request, response):
@@ -73,8 +85,16 @@ class FaceRecognitionNode(Node):
         
         return response
 
-    def image_callback(self, msg):        
-        self.last_image = self.cv_bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
+    def image_callback(self, msg):
+        if self.img_compressed:
+            self.last_image = self.decode_compressed_image(msg)
+        else:
+            self.last_image = self.cv_bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
+    
+    def decode_compressed_image(self, msg):
+        np_arr = np.frombuffer(msg.data, np.uint8)
+        compressed_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        return compressed_image
     
     def get_match_person_name(self):
         if self.last_image is None:
