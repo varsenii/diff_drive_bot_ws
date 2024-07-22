@@ -31,9 +31,8 @@ class WaypointManager:
         self.transform_listener = TransformListener(self.transform_buffer, self.node)
 
     def waypoint_callback(self, msg):
-        self.logger.info(f'Received {len(msg.markers)} markers')      
         self.waypoints = [marker for i, marker in enumerate(msg.markers) if i % 3 == 0]
-        self.logger.info(f'Derived {len(self.waypoints)} waypoints')
+        self.logger.info(f'Received {len(self.waypoints)} waypoints')
 
         self.update_starting_pose()
 
@@ -45,6 +44,5 @@ class WaypointManager:
             now = rclpy.time.Time()
             transform = self.transform_buffer.lookup_transform('map', 'base_link', now)
             self.starting_pose_goal = transform_to_goal(transform)
-            self.logger.info(f'Staring pose is updated to: {self.starting_pose_goal.pose}')
         except Exception as e:
             self.logger.error(f'Failed to update the starting pose: {e}')

@@ -2,7 +2,6 @@ from rclpy.action import ActionClient
 from nav2_msgs.action import NavigateToPose
 from rclpy.callback_groups import ReentrantCallbackGroup
 
-
 class NavigationManager:
 
     def __init__(self, node):
@@ -15,9 +14,10 @@ class NavigationManager:
     def move_to_waypoint(self, goal_msg):
         if self.current_goal_handle:
             self.logger.info('Cancelling current goal...')
-            self.current_goal_handle.cancel_goal_async()
-
-        self.send_goal(goal_msg)
+            cancel_future = self.current_goal_handle.cancel_goal_async()
+            cancel_future.add_done_callback(lambda future: self.send_goal(goal_msg))
+        else:
+            self.send_goal(goal_msg)
     
     def send_goal(self, goal_msg):
         if self.nav2_client.wait_for_server(timeout_sec=10.0):
@@ -46,7 +46,7 @@ class NavigationManager:
             result = future.result()
             if result:
                 self.logger.info(f'Goal result: {result.result}')
-                self.parent_tasker.identify_by_face()
+                self.parent_tasker.perform_tasks_or_terminate()
             else:
                 self.logger.error('Failed to receive result from action server.')
         except Exception as e:
