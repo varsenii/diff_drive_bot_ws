@@ -132,7 +132,6 @@ class Listen(Node):
             # Publish voice command to a topic
             self.pub_voice_command.publish(self.voice_command)
 
-            print(f'Intent to publlish: {intent}')
             self.pub_intent.publish(intent)
             
 

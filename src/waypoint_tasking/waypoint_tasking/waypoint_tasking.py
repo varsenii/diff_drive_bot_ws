@@ -4,8 +4,9 @@ from rclpy.executors import MultiThreadedExecutor
 import rclpy.time
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 from rclpy.logging import LoggingSeverity
+from rcl_interfaces.msg import ParameterDescriptor
 
-from diff_drive_bot_interfaces.msg import Intent, Slot
+from diff_drive_bot_interfaces.msg import Intent
 from diff_drive_bot_interfaces.srv import StartWaypointTasks
 from waypoint_tasking.tasks.face_recognition import FaceRecognitionManager
 from waypoint_tasking.waypoint_manager import WaypointManager
@@ -17,6 +18,9 @@ class WaypointTasker(Node):
 
     def __init__(self):
         super().__init__('waypoint_tasker')
+
+        self.declare_parameter('map', '', ParameterDescriptor(description="The map to load waypoints for"))
+        self.map = self.get_parameter('map').get_parameter_value().string_value
 
         qos_profile = QoSProfile(
             reliability=QoSReliabilityPolicy.RELIABLE,
@@ -48,6 +52,8 @@ class WaypointTasker(Node):
 
         self.logger.set_level(LoggingSeverity.DEBUG)
 
+        self.waypoint_manager.load_waypoints_for_map(self.map)
+
 
     def start_waypoint_tasks_callback(self, request, response):
         intialized = self.init_navigation_and_task_execution(request.waypoints, request.tasks, request.return_to_start)
@@ -55,9 +61,9 @@ class WaypointTasker(Node):
         if intialized is False:
             self.logger.error('No waypoints available to navigate.')
             response.success = False
-            return response
+        else:
+            response.success = True
 
-        response.success = True
         return response
 
     def intent_callback(self, intent):
@@ -68,21 +74,13 @@ class WaypointTasker(Node):
         elif intent.name == 'waypointNavigation':
             tasks = []
         else:
-            self.logger.warning(f'Unsupported intent: {intent.name}')
+            self.logger.debug(f'Unsupported intent: {intent.name}')
             return
         
-        for slot in intent.slots:
-            self.logger.debug(f'Slot: {slot.name}')
-
-            if slot.name == 'waypointOrdinal':
-                waypoints = [int(slot.value[:-2]) - 1]
-                return_to_start = False
-            elif slot.name == 'waypointInteger':
-                waypoints = [int(slot.value) - 1]
-                return_to_start = False
-            elif slot.name == 'allWaypoints':
-                waypoints = []
-                return_to_start = True
+        try:
+            waypoints, return_to_start = self.parse_intent_parameters(intent)
+        except:
+            return
         
         self.init_navigation_and_task_execution(waypoints, tasks, return_to_start)
                     
@@ -99,6 +97,8 @@ class WaypointTasker(Node):
 
         self.report_manager.create_report()
 
+        self.waypoint_manager.update_starting_pose()
+
         if self.waypoints_to_visit:
             self.move_to_waypoint(self.waypoints_to_visit[self.current_waypoint_index])
             return True
@@ -108,16 +108,25 @@ class WaypointTasker(Node):
         goal_msg = marker_to_goal(waypoint)
         self.navigation_manager.move_to_waypoint(goal_msg)
 
-    def perform_tasks_or_terminate(self):
+        # If returning to start, set the flag to track completion
+        if self.is_coming_back_to_starting_point:
+            self.is_coming_back_to_starting_point = False
+            self.logger.info('The robot has successfully returned to the starting point')
+
+    def on_nav_goal_succeed(self):
         if self.is_coming_back_to_starting_point is True:
             self.logger.info('The robot came back to the starting point')
             self.is_coming_back_to_starting_point = False
             return
 
+        self.logger.info(f'The robot has arrived to the waypoint {self.current_waypoint_index}')
+
         for task in self.tasks:
             self.logger.info(f'Performing "{task}" task...')
             self.supported_tasks[task].perform_task()
-
+        
+        self.proceed_to_next_waypoint()
+    
     def on_task_complete(self, task, result):
         self.executed_tasks_per_waypoint += 1
 
@@ -126,12 +135,17 @@ class WaypointTasker(Node):
 
         self.report_manager.log_task_result(waypoint_index=self.current_waypoint_index, task=task, result=result)
 
-        # Proceed to the next waypoint only if all tasks have been executed
-        if self.executed_tasks_per_waypoint < len(self.tasks):
-            return
+        self.proceed_to_next_waypoint()
         
-        self.logger.info(f'All tasks are completed at waypoint {self.current_waypoint_index}')
+    def proceed_to_next_waypoint(self):
+        # Proceed to the next waypoint only if all tasks have been executed
+        if len(self.tasks) != 0:
+            if  self.executed_tasks_per_waypoint < len(self.tasks):
+                return
+            else:
+                self.logger.info(f'All tasks are completed at waypoint {self.current_waypoint_index}')
 
+        
         self.current_waypoint_index += 1
         self.executed_tasks_per_waypoint = 0
 
@@ -141,12 +155,35 @@ class WaypointTasker(Node):
             self.logger.info('All waypoints have been visited.')
 
             if self.return_to_start is False:
+                self.logger.info('No return to start requested.')
                 return
 
             self.is_coming_back_to_starting_point = True
             self.logger.info('Coming back to the starting point...')
             self.navigation_manager.move_to_waypoint(self.waypoint_manager.starting_pose_goal)
-    
+
+    def parse_intent_parameters(self, intent):
+        waypoints, return_to_start = None, None
+
+        for slot in intent.slots:
+            self.logger.debug(f'Slot: {slot.name}')
+
+            if slot.name == 'waypointOrdinal':
+                waypoints = [int(slot.value[:-2]) - 1]
+                return_to_start = False
+            elif slot.name == 'waypointInteger':
+                waypoints = [int(slot.value) - 1]
+                return_to_start = False
+            elif slot.name == 'allWaypoints':
+                waypoints = []
+                return_to_start = True
+        
+        if waypoints is None:
+            self.logger.error('Failed to derive the waypoints from the intent')
+            raise RuntimeError('Failed to derive the waypoints from the intent')
+        
+        return waypoints, return_to_start
+
 
 def main():
     rclpy.init()

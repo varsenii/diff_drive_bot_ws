@@ -2,8 +2,13 @@ import rclpy
 from visualization_msgs.msg import MarkerArray
 from rclpy.callback_groups import ReentrantCallbackGroup
 from tf2_ros import TransformListener, Buffer
+from visualization_msgs.msg import Marker
+import os
+import json
 
-from waypoint_tasking.utils import transform_to_goal
+from diff_drive_bot_interfaces.srv import SaveWaypoints
+
+from waypoint_tasking.utils import transform_to_goal, serialize_markers, deserialize_markers
 
 
 class WaypointManager:
@@ -20,9 +25,12 @@ class WaypointManager:
             10,
             callback_group=self.callback_group
         )
+
+        self.save_waypoints_service = self.node.create_service(SaveWaypoints, '/save_waypoints', self.save_waypoints_callback)
         
         self.logger = self.node.get_logger()
         self.waypoints = []
+        self.waypoint_dir = os.path.join(os.path.curdir, 'src', 'waypoint_tasking', 'waypoint_tasking', 'waypoints')
 
         # The pose before the waypoint navigation
         # May different from the initial one when the map is loaded
@@ -33,8 +41,43 @@ class WaypointManager:
     def waypoint_callback(self, msg):
         self.waypoints = [marker for i, marker in enumerate(msg.markers) if i % 3 == 0]
         self.logger.info(f'Received {len(self.waypoints)} waypoints')
+    
+    def save_waypoints_callback(self, request, response):
+        self.logger.info(f'Saving the waypoints for the map {request.map}...')
 
-        self.update_starting_pose()
+        path = os.path.join(self.waypoint_dir, f'{request.map}.json')
+        try:
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+
+            with open(path, 'w') as waypoint_file:
+                waypoints_data = serialize_markers(self.waypoints)
+                json.dump(waypoints_data, waypoint_file, indent=4)
+            
+            self.logger.info('Waypoints saved successfully')
+            response.success = True
+        except Exception as e:
+            self.logger.error(f'Failed to save the waypoints: {e}')
+            response.success = False
+
+        return response
+
+    def load_waypoints_for_map(self, map):
+        if map == '':
+            self.logger.info('Map isn\'t specified')
+            return
+        
+        self.logger.debug(f'Loading waypoints for the map {map}...')
+        
+        path = os.path.join(self.waypoint_dir, f'{map}.json')
+        try:
+            with open(path, 'r') as waypoint_file:
+                waypoints_data = json.load(waypoint_file)
+                self.waypoints = deserialize_markers(waypoints_data)
+                
+                self.logger.info(f'Waypoints loaded successfully for the map {map}')
+        except Exception as e:
+            self.logger.error(f'Failed to load the waypoints: {e}')
+
 
     def get_waypoints(self, indexes):
         if len(indexes) == 0:

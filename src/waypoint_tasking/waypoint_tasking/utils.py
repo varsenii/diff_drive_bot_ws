@@ -2,6 +2,8 @@ from visualization_msgs.msg import Marker
 from nav2_msgs.action import NavigateToPose
 from geometry_msgs.msg import PoseStamped
 from tf2_msgs.msg import TFMessage
+from std_msgs.msg import Header
+from geometry_msgs.msg import Pose
 
 import os
 from datetime import datetime
@@ -47,3 +49,51 @@ def transform_to_goal(transform: TFMessage) -> NavigateToPose.Goal:
     goal_msg.pose = pose
 
     return goal_msg
+
+def serialize_markers(markers):
+    return [{
+            'header': {
+                'stamp': {
+                    'sec': marker.header.stamp.sec,
+                    'nanosec': marker.header.stamp.nanosec
+                },
+                'frame_id': marker.header.frame_id
+            },
+            'id': marker.id,
+            'pose': {
+                'position': {
+                    'x': marker.pose.position.x,
+                    'y': marker.pose.position.y,
+                    'z': marker.pose.position.z,
+                },
+                'orientation': {
+                    'x': marker.pose.orientation.x,
+                    'y': marker.pose.orientation.y,
+                    'z': marker.pose.orientation.z,
+                    'w': marker.pose.orientation.w,
+                },
+            }
+        } for marker in markers]
+
+def deserialize_markers(waypoints_data):
+    markers = []
+
+    for data in waypoints_data:
+        marker = Marker()
+        marker.header = Header()
+        marker.header.stamp.sec = data['header']['stamp']['sec']
+        marker.header.stamp.nanosec = data['header']['stamp']['nanosec']
+        marker.header.frame_id = data['header']['frame_id']
+        marker.id = data['id']
+        marker.pose = Pose()
+        marker.pose.position.x = data['pose']['position']['x']
+        marker.pose.position.y = data['pose']['position']['y']
+        marker.pose.position.z = data['pose']['position']['z']
+        marker.pose.orientation.x = data['pose']['orientation']['x']
+        marker.pose.orientation.y = data['pose']['orientation']['y']
+        marker.pose.orientation.z = data['pose']['orientation']['z']
+        marker.pose.orientation.w = data['pose']['orientation']['w']
+        
+        markers.append(marker)
+    
+    return markers

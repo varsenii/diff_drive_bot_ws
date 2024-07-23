@@ -45,7 +45,8 @@ class NavigationManager:
         try:
             result = future.result()
             if result:
-                self.parent_tasker.perform_tasks_or_terminate()
+                self.logger.debug(f'Goal result received: {result}')
+                self.parent_tasker.on_nav_goal_succeed()
             else:
                 self.logger.error('Failed to receive result from action server.')
         except Exception as e:
