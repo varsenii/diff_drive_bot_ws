@@ -3,7 +3,9 @@ from rclpy.node import Node
 from rclpy.executors import MultiThreadedExecutor
 import rclpy.time
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
+from rclpy.logging import LoggingSeverity
 
+from diff_drive_bot_interfaces.msg import Intent, Slot
 from diff_drive_bot_interfaces.srv import StartWaypointTasks
 from waypoint_tasking.tasks.face_recognition import FaceRecognitionManager
 from waypoint_tasking.waypoint_manager import WaypointManager
@@ -23,7 +25,8 @@ class WaypointTasker(Node):
         )
 
         self.start_navigation_service = self.create_service(StartWaypointTasks, 'start_waypoint_tasks', self.start_waypoint_tasks_callback, qos_profile=qos_profile)
-        
+        self.sub_intent = self.create_subscription(Intent, '/intent', self.intent_callback, 10)
+
         self.waypoint_manager = WaypointManager(self)
         self.navigation_manager = NavigationManager(self)
         self.face_recognition_manager = FaceRecognitionManager(self)
@@ -43,30 +46,62 @@ class WaypointTasker(Node):
 
         self.report_manager = ReportManager()
 
+        self.logger.set_level(LoggingSeverity.DEBUG)
+
 
     def start_waypoint_tasks_callback(self, request, response):
-        self.tasks = request.tasks
-        self.waypoints_to_visit = request.waypoints
-        self.return_to_start = request.return_to_start
-        self.logger.info(f'Received tasks: {self.tasks}')
-        self.logger.info(f'Waypoints to navigate: {"all" if len(self.waypoints_to_visit) == 0 else self.waypoints_to_visit}')
-        self.logger.info(f'Return to start: {self.return_to_start}')
-
-        self.report_manager.create_report()
-
-        self.current_waypoint_index = 0
-        self.executed_tasks_per_waypoint = 0
-
-        self.waypoints_to_visit = self.waypoint_manager.get_waypoints(self.waypoints_to_visit)
-
-        if self.waypoints_to_visit:
-            self.move_to_waypoint(self.waypoints_to_visit[self.current_waypoint_index])
-        else:
+        intialized = self.init_navigation_and_task_execution(request.waypoints, request.tasks, request.return_to_start)
+        
+        if intialized is False:
             self.logger.error('No waypoints available to navigate.')
+            response.success = False
+            return response
 
         response.success = True
         return response
-    
+
+    def intent_callback(self, intent):
+        self.logger.info(f'Received intent: {intent}')
+
+        if intent.name == 'faceRecognition':
+            tasks = ['face_recognition']
+        elif intent.name == 'waypointNavigation':
+            tasks = []
+        else:
+            self.logger.warning(f'Unsupported intent: {intent.name}')
+            return
+        
+        for slot in intent.slots:
+            self.logger.debug(f'Slot: {slot.name}')
+
+            if slot.name == 'waypointOrdinal':
+                waypoints = [int(slot.value[:-2]) - 1]
+                return_to_start = False
+            elif slot.name == 'waypointInteger':
+                waypoints = [int(slot.value) - 1]
+                return_to_start = False
+            elif slot.name == 'allWaypoints':
+                waypoints = []
+                return_to_start = True
+        
+        self.init_navigation_and_task_execution(waypoints, tasks, return_to_start)
+                    
+    def init_navigation_and_task_execution(self, waypoint_indexes, tasks, return_to_start):
+        self.logger.info(f'Tasks to perform: {tasks}')
+        self.logger.info(f'Waypoints to navigate: {"all" if len(waypoint_indexes) == 0 else waypoint_indexes}')
+        self.logger.info(f'Return to start: {return_to_start}')
+
+        self.current_waypoint_index = 0
+        self.executed_tasks_per_waypoint = 0
+        self.tasks = tasks
+        self.waypoints_to_visit = self.waypoint_manager.get_waypoints(waypoint_indexes)
+        self.return_to_start = return_to_start
+
+        self.report_manager.create_report()
+
+        if self.waypoints_to_visit:
+            self.move_to_waypoint(self.waypoints_to_visit[self.current_waypoint_index])
+            return True
 
     def move_to_waypoint(self, waypoint):
         self.logger.info(f'Moving to the waypoint {self.current_waypoint_index}...')
