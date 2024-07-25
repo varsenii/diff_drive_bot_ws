@@ -62,7 +62,7 @@ def on_open(ws):
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Stream video frames from Raspberry Pi to ROS using rosbridge.')
-    parser.add_argument('--ip', type=str, default='192.168.1.51', help='IP address of the ROS server (default: 192.168.1.51)')
+    parser.add_argument('--ip', type=str, default='192.168.2.11', help='IP address of the ROS server (default: 192.168.2.11)')
     parser.add_argument('--port', type=int, default=9090, help='Port of the ROS server (default: 9090)')
     parser.add_argument('--width', type=int, default=640, help='Width of the image (default: 640)')
     parser.add_argument('--height', type=int, default=480, help='Height of the image (default: 480)')
