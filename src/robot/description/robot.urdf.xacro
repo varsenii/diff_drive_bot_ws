@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="http://www.ros.org/wiki/xacro"  name="robot">
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="robot">
 
     <xacro:arg name="use_ros2_control" default="true"/>
     <xacro:arg name="sim_mode" default="false"/>
@@ -15,6 +15,8 @@
 
     <xacro:include filename="lidar.xacro"/>
 
-    <xacro:include filename="camera.xacro"/>
+    <!-- <xacro:include filename="camera.xacro"/> -->
+
+    <xacro:include filename="depth_camera.xacro"/>
 
 </robot>
