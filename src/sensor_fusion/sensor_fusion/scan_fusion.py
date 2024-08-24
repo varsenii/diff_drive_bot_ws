@@ -65,7 +65,7 @@ class ScanFusionNode(Node):
 
         # Create a new LaserScan message for the fused data
         fused_scan = LaserScan()
-        fused_scan.header.stamp = self.get_clock().now().to_msg()
+        fused_scan.header.stamp = lidar_scan.header.stamp
         fused_scan.header.frame_id = lidar_scan.header.frame_id
         fused_scan.angle_min = lidar_scan.angle_min
         fused_scan.angle_max = lidar_scan.angle_max
