@@ -15,10 +15,15 @@ def generate_launch_description():
             ],
             parameters=[{
                 'output_frame': 'laser_frame',
-                'scan_height': 80,
-                'scan_time': 0.033,
+                'scan_height': 60,
+                'scan_time': 0.1,
                 'range_min': 0.4,
-                'range_max': 8.0
+                'range_max': 2.0
             }]
+        ),
+        Node(
+            package='sensor_fusion',
+            executable='scan_fusion_node',
+            name='scan_fusion_node'
         )
     ])
