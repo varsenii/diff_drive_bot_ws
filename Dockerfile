@@ -35,10 +35,10 @@ RUN groupadd --gid $USER_GID $USERNAME \
 RUN usermod -aG dialout ${USERNAME}
 
 # Copy the entire ROS workspace into the container
-COPY src/ src/
+COPY . .
 
 # Install Python dependencies using pip
-RUN pip3 install -r src/yolov8_ros/requirements.txt \
+RUN pip3 install --no-cache-dir -r src/yolov8_ros/requirements.txt \
   && pip3 install deepface tf-keras \
   && pip3 install pvrecorder \
   && pip3 install picovoice
