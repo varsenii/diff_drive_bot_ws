@@ -5,7 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - /Map1
+        - /LaserScan1
         - /Map1/Topic1
       Splitter Ratio: 0.5
     Tree Height: 226
@@ -198,7 +198,7 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /scan
+        Value: /fused_scan
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
@@ -304,16 +304,16 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 9.155641555786133
+      Distance: 7.407596588134766
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -1.5623226165771484
-        Y: -0.6205373406410217
-        Z: 1.772352933883667
+        X: -0.7418369054794312
+        Y: -0.4883284866809845
+        Z: 1.9808443784713745
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false

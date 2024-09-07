@@ -25,7 +25,7 @@ class ScanFusionNode(Node):
         self.depth_camera_sub = Subscriber(self, LaserScan, '/camera/scan')
         self.lidar_sub = Subscriber(self, LaserScan, '/scan')
 
-        self.fused_scan_pub = self.create_publisher(LaserScan, '/fused_scan', 5)
+        self.fused_scan_pub = self.create_publisher(LaserScan, '/scan_fused', 5)
 
         self.sync = ApproximateTimeSynchronizer(
             [self.lidar_sub, self.depth_camera_sub],

@@ -26,7 +26,7 @@ def generate_launch_description():
                 'output_frame': 'camera_link',
                 'scan_height': 60,
                 'scan_time': 0.1,
-                'range_min': 0.4,
+                'range_min': 0.1,
                 'range_max': 2.0
             }]
         ),

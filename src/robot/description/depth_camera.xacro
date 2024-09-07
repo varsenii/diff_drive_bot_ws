@@ -39,13 +39,13 @@
                     <height>480</height>
                 </image>
                 <clip>
-                    <near>0.05</near>
+                    <near>0.01</near>
                     <far>8.0</far>
                 </clip>
             </camera>
             <plugin name='camera_controller' filename="libgazebo_ros_camera.so">
                 <frame_name>camera_link_optical</frame_name>
-                <min_depth>0.2</min_depth>
+                <min_depth>0.1</min_depth>
                 <max_depth>100.0</max_depth>
             </plugin>
         </sensor>
