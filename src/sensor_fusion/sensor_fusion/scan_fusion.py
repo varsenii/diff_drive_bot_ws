@@ -5,6 +5,7 @@ import rclpy.time
 from sensor_msgs.msg import LaserScan
 from rclpy.logging import LoggingSeverity
 from rclpy.parameter import Parameter
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 
 from sensor_fusion.utils.scan_fusor import ScanFusor
 
@@ -22,10 +23,16 @@ class ScanFusionNode(Node):
         self.set_parameters([Parameter('use_sim_time', Parameter.Type.BOOL, use_sim_time)])
         self.logger.info(f'use_sim_time: {use_sim_time}')
 
-        self.depth_camera_sub = Subscriber(self, LaserScan, '/camera/scan')
+        qos_profile = QoSProfile(
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=10
+        )
+
+        self.depth_camera_sub = Subscriber(self, LaserScan, '/camera/scan', qos_profile=qos_profile)
         self.lidar_sub = Subscriber(self, LaserScan, '/scan')
 
-        self.fused_scan_pub = self.create_publisher(LaserScan, '/scan_fused', 5)
+        self.fused_scan_pub = self.create_publisher(LaserScan, '/scan_fused', qos_profile=qos_profile)
 
         self.sync = ApproximateTimeSynchronizer(
             [self.lidar_sub, self.depth_camera_sub],

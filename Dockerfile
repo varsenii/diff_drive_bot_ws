@@ -16,6 +16,7 @@ RUN apt-get update \
         ros-humble-nav2-bringup \
         ros-humble-twist-mux \
         ros-humble-depthimage-to-laserscan \
+        ros-humble-pointcloud-to-laserscan \
         ros-humble-pcl-ros \
     && rm -rf /var/lib/apt/lists/*
 
