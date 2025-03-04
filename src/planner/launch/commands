@@ -1,0 +1,12 @@
+ros2 run plansys2_terminal plansys2_terminal 
+
+set instance bot robot
+set instance wp1 waypoint
+set instance wp2 waypoint
+
+set predicate (connected wp1 wp2)
+set predicate (connected wp2 wp1)
+
+set predicate (robot_at bot wp1)
+
+set goal (and(robot_at bot wp2))
