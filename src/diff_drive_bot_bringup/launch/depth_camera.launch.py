@@ -5,55 +5,56 @@ from launch.substitutions import LaunchConfiguration
 
 
 def generate_launch_description():
-    use_sim_time = LaunchConfiguration('use_sim_time')
+    use_sim_time = LaunchConfiguration("use_sim_time")
 
-    return LaunchDescription([
-        DeclareLaunchArgument(
-            name='use_sim_time',
-            default_value='false',
-            description='Whether to use the simulated time'
-        ),
-        # Node(
-        #     package='depthimage_to_laserscan',
-        #     executable='depthimage_to_laserscan_node',
-        #     name='depthimage_to_laserscan',
-        #     remappings=[
-        #         ('depth', '/camera/depth/image_raw'),
-        #         ('depth_camera_info', '/camera/depth/camera_info'),
-        #         ('scan', '/camera/scan')
-        #     ],
-        #     parameters=[{
-        #         'output_frame': 'camera_link',
-        #         'scan_height': 60,
-        #         'scan_time': 0.1,
-        #         'range_min': 0.1,
-        #         'range_max': 2.0
-        #     }]
-        # )
-        Node(
-            package='pointcloud_to_laserscan',
-            executable='pointcloud_to_laserscan_node',
-            name='pointcloud_to_laserscan',
-            remappings=[
-                ('cloud_in', '/camera/points'),
-                ('scan', '/camera/scan')
-            ],
-            parameters=[{
-                'target_frame': 'camera_link',
-                'min_height': -0.15,  # Minimum height to filter out the floor
-                'max_height': 1.0,   # Maximum height to detect relevant obstacles
-                'angle_min': -1.57,  # Adjust angle limits as needed
-                'angle_max': 1.57,
-                'range_min': 0.1,
-                'range_max': 2.0
-            }]
-        ),
-        Node(
-            package='sensor_fusion',
-            executable='scan_fusion_node',
-            name='scan_fusion_node',
-            parameters=[
-                {'use_sim_time': use_sim_time}
-            ]
-        )
-    ])
+    return LaunchDescription(
+        [
+            DeclareLaunchArgument(
+                name="use_sim_time",
+                default_value="false",
+                description="Whether to use the simulated time",
+            ),
+            # Node(
+            #     package='depthimage_to_laserscan',
+            #     executable='depthimage_to_laserscan_node',
+            #     name='depthimage_to_laserscan',
+            #     remappings=[
+            #         ('depth', '/camera/depth/image_raw'),
+            #         ('depth_camera_info', '/camera/depth/camera_info'),
+            #         ('scan', '/camera/scan')
+            #     ],
+            #     parameters=[{
+            #         'output_frame': 'camera_link',
+            #         'scan_height': 60,
+            #         'scan_time': 0.1,
+            #         'range_min': 0.1,
+            #         'range_max': 2.0
+            #     }]
+            # )
+            Node(
+                package="pointcloud_to_laserscan",
+                executable="pointcloud_to_laserscan_node",
+                name="pointcloud_to_laserscan",
+                remappings=[("cloud_in", "/camera/points"), ("scan", "/camera/scan")],
+                parameters=[
+                    {
+                        "target_frame": "camera_link",
+                        "min_height": -0.15,  # Minimum height to filter out the floor
+                        "max_height": 1.0,  # Maximum height to detect relevant obstacles
+                        "angle_min": -1.57,  # Adjust angle limits as needed
+                        "angle_max": 1.57,
+                        "range_min": 0.1,
+                        "range_max": 2.0,
+                    }
+                ],
+            ),
+            # Node(
+            #     package='sensor_fusion',
+            #     executable='scan_fusion_node',
+            #     name='scan_fusion_node',
+            #     parameters=[
+            #         {'use_sim_time': use_sim_time}
+            #     ]
+            # )
+        ]
+    )
