@@ -18,6 +18,7 @@ RUN apt-get update \
         ros-humble-depthimage-to-laserscan \
         ros-humble-pointcloud-to-laserscan \
         ros-humble-pcl-ros \
+        python3-pyaudio \
     && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory
@@ -42,7 +43,9 @@ COPY . .
 RUN pip3 install --no-cache-dir -r src/yolov8_ros/requirements.txt \
   && pip3 install deepface tf-keras \
   && pip3 install pvrecorder \
-  && pip3 install picovoice
+  && pip3 install picovoice \
+  && pip3 install vosk \
+  && pip3 install sounddevice
 
 # Ensure necessary directories have the correct permissions
 RUN chown -R $USER_UID:$USER_GID /diff_drive_bot /home/$USERNAME
