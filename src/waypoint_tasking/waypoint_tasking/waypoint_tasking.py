@@ -95,6 +95,11 @@ class WaypointTasker(Node):
             direction = command_data.get("direction")
 
             self.navigation_manager.move_by_command(distance, direction)
+        elif command == "ROTATE":
+            angle = command_data.get("angle", 0.0)
+            direction = command_data.get("direction")
+
+            self.navigation_manager.rotate_by_command(angle, direction)
 
     def intent_callback(self, intent):
         self.logger.info(f"Received intent: {intent}")

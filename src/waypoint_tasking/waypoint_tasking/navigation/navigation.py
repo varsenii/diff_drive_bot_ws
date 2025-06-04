@@ -1,10 +1,10 @@
+import math
 import rclpy
 from rclpy.action import ActionClient
 from nav2_msgs.action import NavigateToPose
 from rclpy.callback_groups import ReentrantCallbackGroup
 import rclpy.time
-
-import math
+from tf_transformations import quaternion_from_euler, quaternion_multiply
 
 from waypoint_tasking.navigation.utils import transform_to_goal
 
@@ -38,6 +38,31 @@ class NavigationManager:
         goal.pose.pose.position.x += distance * math.cos(goal.pose.pose.orientation.z)
         goal.pose.pose.position.y += distance * math.sin(goal.pose.pose.orientation.z)
         self.logger.info(f"Target goal: {goal}")
+
+        # Send the goal
+        self.send_goal(goal)
+
+    def rotate_by_command(self, angle, direction):
+        # Get the current orientation quaternion
+        transform = self.get_current_pose()
+        orientation = transform.transform.rotation
+
+        orientation_quat = (orientation.x, orientation.y, orientation.z, orientation.w)
+
+        # Create the quaternion representing the desired rotation
+        desired_rotation = quaternion_from_euler(0, 0, math.radians(angle))
+
+        # Compute the target orientation quaternion
+        target_quaternion = quaternion_multiply(desired_rotation, orientation_quat)
+
+        # Convert the TF to goal
+        goal = transform_to_goal(transform=transform)
+
+        # Adjust the goal to reflect the desired target rotation
+        goal.pose.pose.orientation.x = target_quaternion[0]
+        goal.pose.pose.orientation.y = target_quaternion[1]
+        goal.pose.pose.orientation.z = target_quaternion[2]
+        goal.pose.pose.orientation.w = target_quaternion[3]
 
         # Send the goal
         self.send_goal(goal)
