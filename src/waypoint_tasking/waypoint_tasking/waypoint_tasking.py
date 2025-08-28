@@ -1,11 +1,11 @@
 import rclpy
 from rclpy.node import Node
 from rclpy.executors import MultiThreadedExecutor
-import rclpy.time
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 from rclpy.logging import LoggingSeverity
 from rcl_interfaces.msg import ParameterDescriptor
 from tf2_ros import Buffer, TransformListener
+from threading import Thread
 
 import json
 
@@ -14,7 +14,7 @@ from diff_drive_bot_interfaces.msg import Intent
 from diff_drive_bot_interfaces.srv import StartWaypointTasks
 from waypoint_tasking.tasks.face_recognition import FaceRecognitionManager
 from waypoint_tasking.waypoint_manager import WaypointManager
-from waypoint_tasking.navigation.navigation import NavigationManager
+from waypoint_tasking.navigation import NavigationManager, TwistCommander
 from waypoint_tasking.utils import ReportManager
 from waypoint_tasking.navigation.utils import marker_to_goal
 
@@ -52,6 +52,7 @@ class WaypointTasker(Node):
 
         self.waypoint_manager = WaypointManager(self)
         self.navigation_manager = NavigationManager(self, self.tf_buffer)
+        self.twist_commander = TwistCommander(node=self, tf_buffer=self.tf_buffer)
         self.face_recognition_manager = FaceRecognitionManager(self)
 
         self.navigation_manager.set_parent_tasker(self)
@@ -90,16 +91,29 @@ class WaypointTasker(Node):
 
         command = command_data.get("command")
 
-        if command == "MOVE":
+        if not command:
+            self.logger.warning("Couldn't derive the command to execute.")
+        elif command == "MOVE":
             distance = command_data.get("distance", 0.0)
             direction = command_data.get("direction")
 
-            self.navigation_manager.move_by_command(distance, direction)
+            # self.navigation_manager.move_by_command(distance, direction)
+            # self.twist_commander.move_by_command(distance=distance, direction=direction)
+            Thread(
+                target=self.twist_commander.move_by_command,
+                args=(distance, direction),
+                daemon=True,
+            ).start()
+
         elif command == "ROTATE":
             angle = command_data.get("angle", 0.0)
             direction = command_data.get("direction")
 
             self.navigation_manager.rotate_by_command(angle, direction)
+        elif command == "STOP":
+            self.navigation_manager.cancel_goal()
+        else:
+            self.logger.warning("Unknown command")
 
     def intent_callback(self, intent):
         self.logger.info(f"Received intent: {intent}")

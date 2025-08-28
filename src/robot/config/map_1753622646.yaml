@@ -1,4 +1,4 @@
-image: my_apartment.pgm
+image: map_1753622646.pgm
 mode: trinary
 resolution: 0.05
 origin: [-4.97, -2.46, 0]
