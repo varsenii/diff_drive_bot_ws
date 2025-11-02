@@ -17,9 +17,11 @@ import os
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, GroupAction, SetEnvironmentVariable
+from launch.actions import DeclareLaunchArgument, GroupAction, SetEnvironmentVariable, IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.conditions import IfCondition
-from launch.substitutions import LaunchConfiguration, PythonExpression
+from launch.substitutions import LaunchConfiguration, PythonExpression, PathJoinSubstitution
+from launch_ros.substitutions import FindPackageShare
 from launch_ros.actions import LoadComposableNodes
 from launch_ros.actions import Node
 from launch_ros.descriptions import ComposableNode, ParameterFile
@@ -27,8 +29,20 @@ from nav2_common.launch import RewrittenYaml
 
 
 def generate_launch_description():
-    # Get the launch directory
+    # Paths to packages
+    package_name_docking = "docking"
+    
+    # Paths to launch files
+    apriltag_launch_file_path = "launch/apriltag_dock_pose_publisher.launch.py"
+
+    # Set the paths to different packages
+    docking_dir = FindPackageShare(package=package_name_docking).find(package_name_docking)
+
+    # Set default paths
     bringup_dir = get_package_share_directory("diff_drive_bot_bringup")
+    default_apriltag_launch_path = PathJoinSubstitution(
+        [docking_dir, apriltag_launch_file_path]
+    )
 
     namespace = LaunchConfiguration("namespace")
     use_sim_time = LaunchConfiguration("use_sim_time")
@@ -48,8 +62,9 @@ def generate_launch_description():
         "bt_navigator",
         "waypoint_follower",
         "velocity_smoother",
-        "costmap_filter_info_server",
-        "filter_mask_server",
+        # "docking_server",
+        # "costmap_filter_info_server",
+        # "filter_mask_server",
     ]
 
     # Map fully qualified names to relative ones so the node's namespace can be prepended.
@@ -121,6 +136,14 @@ def generate_launch_description():
 
     declare_log_level_cmd = DeclareLaunchArgument(
         "log_level", default_value="info", description="log level"
+    )
+
+    start_apriltag_dock_cmd = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(default_apriltag_launch_path),
+        launch_arguments={
+            "camera_namespace": 'camera',
+            "use_sim_time": use_sim_time,
+        }.items(),
     )
 
     load_nodes = GroupAction(
@@ -203,22 +226,33 @@ def generate_launch_description():
                 remappings=remappings
                 + [("cmd_vel", "cmd_vel_nav"), ("cmd_vel_smoothed", "cmd_vel")],
             ),
-            Node(
-                package="nav2_map_server",
-                executable="costmap_filter_info_server",
-                name="costmap_filter_info_server",
-                output="screen",
-                emulate_tty=True,
-                parameters=[filters_yaml],
-            ),
-            Node(
-                package="nav2_map_server",
-                executable="map_server",
-                name="filter_mask_server",
-                output="screen",
-                emulate_tty=True,
-                parameters=[filters_yaml],
-            ),
+            # Node(
+            #     package='opennav_docking',
+            #     executable='opennav_docking',
+            #     name='docking_server',
+            #     output='screen',
+            #     respawn=use_respawn,
+            #     respawn_delay=2.0,
+            #     parameters=[configured_params],
+            #     arguments=['--ros-args', '--log-level', log_level],
+            #     remappings=remappings,
+            # ),
+            # Node(
+            #     package="nav2_map_server",
+            #     executable="costmap_filter_info_server",
+            #     name="costmap_filter_info_server",
+            #     output="screen",
+            #     emulate_tty=True,
+            #     parameters=[filters_yaml],
+            # ),
+            # Node(
+            #     package="nav2_map_server",
+            #     executable="map_server",
+            #     name="filter_mask_server",
+            #     output="screen",
+            #     emulate_tty=True,
+            #     parameters=[filters_yaml],
+            # ),
             Node(
                 package="nav2_lifecycle_manager",
                 executable="lifecycle_manager",
@@ -288,6 +322,13 @@ def generate_launch_description():
                 remappings=remappings
                 + [("cmd_vel", "cmd_vel_nav"), ("cmd_vel_smoothed", "cmd_vel")],
             ),
+            # ComposableNode(
+            #     package='opennav_docking',
+            #     plugin='opennav_docking::DockingServer',
+            #     name='docking_server',
+            #     parameters=[configured_params],
+            #     remappings=remappings,
+            # ),
             ComposableNode(
                 package="nav2_lifecycle_manager",
                 plugin="nav2_lifecycle_manager::LifecycleManager",
@@ -319,6 +360,7 @@ def generate_launch_description():
     ld.add_action(declare_use_respawn_cmd)
     ld.add_action(declare_log_level_cmd)
     # Add the actions to launch all of the navigation nodes
+    # ld.add_action(start_apriltag_dock_cmd)
     ld.add_action(load_nodes)
     ld.add_action(load_composable_nodes)
 

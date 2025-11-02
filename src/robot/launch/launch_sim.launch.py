@@ -4,7 +4,8 @@ from ament_index_python.packages import get_package_share_directory
 
 
 from launch import LaunchDescription
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch_ros.substitutions import FindPackageShare
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, TimerAction
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -17,6 +18,12 @@ def generate_launch_description():
     robot_name = "robot"
 
     use_ros2_control = LaunchConfiguration("use_ros2_control")
+    world_file_name = LaunchConfiguration(
+        "world",
+        default=PathJoinSubstitution(
+            [FindPackageShare("robot"), "worlds", "autoslam.world"]
+        ),
+    )
 
     gazebo_params_file = os.path.join(
         get_package_share_directory(package_name), "config", "gazebo_params.yaml"

@@ -21,6 +21,10 @@ setup(
         "console_scripts": [
             "waypoint_tasking = waypoint_tasking.waypoint_tasking:main",
             "twist_converter = waypoint_tasking.navigation.twist_converter:main",
+            "scan_tf_debuger = waypoint_tasking.scan_tf_debugger:main",
+            "tfs_stamp_checker = waypoint_tasking.tfs_stamp_checker:main",
+            "tf_hz_checker = waypoint_tasking.tf_hz_checker:main",
+            "pose_controller = waypoint_tasking.navigation.pose_controller:main"
         ],
     },
 )
