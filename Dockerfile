@@ -19,6 +19,8 @@ RUN apt-get update \
         ros-humble-pointcloud-to-laserscan \
         ros-humble-pcl-ros \
         python3-pyaudio \
+        # Voskros dependencies
+        libportaudio2 \
     && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory
