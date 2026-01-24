@@ -7,7 +7,7 @@ def generate_launch_description():
         Node(
             package="voskros",
             executable="vosk",
-            namespace="speech/sst",
+            namespace="speech/stt",
             name="voskros"
         )
     ])
