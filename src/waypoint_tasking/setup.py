@@ -24,7 +24,8 @@ setup(
             "scan_tf_debuger = waypoint_tasking.scan_tf_debugger:main",
             "tfs_stamp_checker = waypoint_tasking.tfs_stamp_checker:main",
             "tf_hz_checker = waypoint_tasking.tf_hz_checker:main",
-            "pose_controller = waypoint_tasking.navigation.pose_controller:main"
+            "pose_controller = waypoint_tasking.navigation.pose_controller:main",
+            "task_manager = waypoint_tasking.task_manager:main",
         ],
     },
 )

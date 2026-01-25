@@ -1,0 +1,1 @@
+rviz2 -d ./src/robot/config/navigation.rviz --ros-args --remap use_sim_time:=false

@@ -1,0 +1,1 @@
+ros2 launch diff_drive_bot_bringup navigation_launch.py use_sim_time:=false
