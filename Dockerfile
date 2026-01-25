@@ -47,7 +47,8 @@ RUN pip3 install --no-cache-dir -r src/yolov8_ros/requirements.txt \
   && pip3 install pvrecorder \
   && pip3 install picovoice \
   && pip3 install vosk \
-  && pip3 install sounddevice
+  && pip3 install sounddevice \
+  && pip3 install ollama
 
 # Ensure necessary directories have the correct permissions
 RUN chown -R $USER_UID:$USER_GID /diff_drive_bot /home/$USERNAME
