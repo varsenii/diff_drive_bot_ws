@@ -6,10 +6,13 @@ class PoseManager:
         self.poses = self._read_poses()
     
     def save_pose(self, label: str, pose: dict):
+        self.poses = self._read_poses()  # Refresh poses from file
         self.poses.append({'label': label, 'pose': pose})
         self._write_poses(self.poses)
     
     def get_pose(self, label: str) -> dict:
+        self.poses = self._read_poses()  # Refresh poses from file
+        
         for entry in self.poses:
             print('Looking for:', label, 'Current entry:', entry['label'])
             if entry['label'] == label:

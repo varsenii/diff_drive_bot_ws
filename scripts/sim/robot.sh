@@ -1,0 +1,1 @@
+ros2 launch diff_drive_bot launch_sim.launch.py world:=./src/robot/worlds/autoslam.world

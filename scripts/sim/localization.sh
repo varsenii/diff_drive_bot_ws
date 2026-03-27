@@ -1,0 +1,1 @@
+ros2 launch diff_drive_bot_bringup localization_launch.py map:=./src/robot/config/walls.yaml use_sim_time:=true
